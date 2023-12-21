@@ -6,7 +6,7 @@ use std::collections::{HashMap, HashSet};
 enum BoardClass {
     WinsDefinitely,
     LosesDefinitely,
-    DependsOnCase,
+    BothLineUp,
     LosesPassively,
 }
 
@@ -15,7 +15,7 @@ fn classify_board(board: Board) -> Option<BoardClass> {
 
     use BoardClass::*;
     match (board.lines_up(player), board.lines_up(!player)) {
-        (true, true) => return Some(DependsOnCase),
+        (true, true) => return Some(BothLineUp),
         (true, false) => return Some(WinsDefinitely),
         (false, true) => return Some(LosesDefinitely),
         (false, false) => (),
@@ -62,7 +62,7 @@ pub fn analyze_backward(
         match class {
             WinsDefinitely => wins.extend(ids),
             LosesDefinitely | LosesPassively => loses.extend(ids),
-            DependsOnCase => both.extend(ids),
+            BothLineUp => both.extend(ids),
         }
     }
     let mut residual = residual;
