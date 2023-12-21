@@ -137,11 +137,8 @@ impl Board {
             // Move
             let from_able = 0x1111_1111 & self.bit(player);
             for from in HotBitIter::from(from_able) {
-                for d in [4, 16, 28] {
-                    let to = from.rotate_left(d);
-                    if to & to_able == 0 {
-                        continue;
-                    }
+                let to_candidates = 0x1001_0010u32.rotate_left(from.trailing_zeros());
+                for to in HotBitIter::from(to_candidates & to_able) {
                     actions.push(Action::Move { from, to });
                 }
             }
@@ -157,8 +154,9 @@ impl Board {
     }
 
     fn put_stone(&mut self, player: Color, target: u32) {
-        let mask = target | (target << 1) | (target << 2);
-        let outer_mask = !(mask | (target << 3));
+        let zeros = target.trailing_zeros();
+        let mask = 0b0111 << zeros;
+        let outer_mask = !(0b1111 << zeros);
 
         let bit = self.bit_mut(player);
         *bit = (*bit & outer_mask) | ((*bit & mask) << 1) | target;
@@ -168,8 +166,9 @@ impl Board {
     }
 
     fn remove_stone(&mut self, target: u32) -> Option<Color> {
-        let mask = (target << 1) | (target << 2) | (target << 3);
-        let outer_mask = !(mask | target);
+        let zeros = target.trailing_zeros();
+        let mask = 0b1110 << zeros;
+        let outer_mask = !(0b1111 << zeros);
 
         let mut stone_color = None;
         for color in Color::iter() {
