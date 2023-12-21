@@ -95,7 +95,7 @@ fn find_shapes(num_stones: u16) -> HashSet<u16> {
     shapes
 }
 
-fn make_repunit(num_digit: usize) -> u16 {
+fn make_repunit(num_digit: u16) -> u16 {
     let mut repunit = 0;
     for _ in 0..num_digit {
         repunit = (repunit << 1) | 1;
@@ -108,7 +108,7 @@ fn create_board_id(mut shape: u16, mut pattern: u16) -> u32 {
     for n in 0..8 {
         let num_stones = shape & 0b11;
 
-        let mask = make_repunit(num_stones as usize);
+        let mask = make_repunit(num_stones);
         let id_part = ((pattern & mask) | (1 << num_stones)) as u32;
         id |= id_part << (4 * n);
 
@@ -126,7 +126,7 @@ pub fn find_board_ids(num_stones: u16) -> HashSet<u32> {
 
     let mut ids = HashSet::with_capacity(capacity);
     let num_blacks = (num_stones as u32 + 1) / 2;
-    let max_pattern = make_repunit(num_stones as usize);
+    let max_pattern = make_repunit(num_stones);
     for shape in find_shapes(num_stones) {
         for pattern in 0..=max_pattern {
             if pattern.count_ones() != num_blacks {
