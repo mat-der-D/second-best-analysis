@@ -4,6 +4,9 @@ mod bit_utils;
 mod board;
 
 use std::collections::HashSet;
+use std::fs::File;
+use std::io::{BufWriter, Write};
+use std::path::{Path, PathBuf};
 
 use analysis::{analyze_backward, Evaluator};
 use bit_utils::Canonicalizable;
@@ -90,7 +93,38 @@ fn count_best_playing() {
     }
 }
 
-fn main() {
+fn dump_as_file<P: AsRef<Path>>(path: P, numbers: &[u32]) -> anyhow::Result<()> {
+    let fs = File::create(&path)?;
+    let mut writer = BufWriter::new(fs);
+    let mut buf = Vec::with_capacity(numbers.len() * 4);
+    for n in numbers {
+        buf.extend(n.to_be_bytes());
+    }
+    writer.write(&buf)?;
+    Ok(())
+}
+
+fn dump_files() -> anyhow::Result<()> {
+    let target_dir = PathBuf::from("out");
+
+    let (wins, loses, both) = analyze_backward(true);
+    let path_both = target_dir.join("Both.dat");
+    dump_as_file(path_both, &both.iter().cloned().collect::<Vec<u32>>())?;
+
+    println!("#Both = {}", both.len());
+    for (num, (w, l)) in wins.iter().zip(loses.iter()).enumerate() {
+        let win_path = target_dir.join(format!("W{num:0>3}.dat"));
+        dump_as_file(win_path, &w.iter().cloned().collect::<Vec<u32>>())?;
+        let lose_path = target_dir.join(format!("L{num:0>3}.dat"));
+        dump_as_file(lose_path, &l.iter().cloned().collect::<Vec<u32>>())?;
+        println!("[{num}] #Win = {}, #Lose = {}", w.len(), l.len());
+    }
+    Ok(())
+}
+
+fn main() -> anyhow::Result<()> {
     // count_best_playing();
-    first_few_steps(9);
+    // first_few_steps(9);
+    // dump_files()?;
+    Ok(())
 }

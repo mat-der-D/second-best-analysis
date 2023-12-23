@@ -10,5 +10,6 @@ lto = true
 codegen-units = 1
 
 [dependencies]
+anyhow = "1.0.76"
 strum = "0.25.0"
 strum_macros = "0.25.3"

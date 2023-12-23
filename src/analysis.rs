@@ -157,7 +157,7 @@ impl Evaluator {
 
         for a in board.legal_actions(next_player) {
             let mut b1 = board.perform_copied(a);
-            if board.num_stones() == 16 {
+            if board.num_stones() == 16 && matches!(next_player, Color::Black) {
                 b1.swap_color();
             }
             let id1 = u32::from(b1).canonicalize();
