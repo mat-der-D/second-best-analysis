@@ -120,3 +120,81 @@ pub fn analyze_backward(
 
     (wins_vec, loses_vec, both)
 }
+
+#[derive(Debug, Clone)]
+pub struct Evaluator {
+    wins_vec: Vec<HashSet<u32>>,
+    loses_vec: Vec<HashSet<u32>>,
+    both: HashSet<u32>,
+}
+
+impl Evaluator {
+    pub fn new() -> Self {
+        let (wins_vec, loses_vec, both) = analyze_backward(false);
+        Self {
+            wins_vec,
+            loses_vec,
+            both,
+        }
+    }
+
+    pub fn from_analyzed(
+        wins_vec: Vec<HashSet<u32>>,
+        loses_vec: Vec<HashSet<u32>>,
+        both: HashSet<u32>,
+    ) -> Self {
+        Self {
+            wins_vec,
+            loses_vec,
+            both,
+        }
+    }
+
+    pub fn evaluate(&self, board: Board, next_player: Color) -> HashMap<Action, i32> {
+        let mut values = HashMap::new();
+        let max_value = self.wins_vec.len() as i32;
+        let min_value = -max_value;
+
+        for a in board.legal_actions(next_player) {
+            let mut b1 = board.perform_copied(a);
+            if board.num_stones() == 16 {
+                b1.swap_color();
+            }
+            let id1 = u32::from(b1).canonicalize();
+
+            if self.both.contains(&id1) {
+                values.insert(a, max_value);
+                continue;
+            }
+
+            let mut evaluated = false;
+            for (n, wins) in self.wins_vec.iter().enumerate() {
+                if wins.contains(&id1) {
+                    values.insert(a, min_value + n as i32);
+                    evaluated = true;
+                    break;
+                }
+            }
+
+            if evaluated {
+                continue;
+            }
+
+            for (n, loses) in self.loses_vec.iter().enumerate() {
+                if loses.contains(&id1) {
+                    values.insert(a, max_value - n as i32);
+                    evaluated = true;
+                    break;
+                }
+            }
+
+            if evaluated {
+                continue;
+            }
+
+            values.insert(a, 0);
+        }
+
+        values
+    }
+}

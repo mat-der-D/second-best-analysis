@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use crate::bit_utils::HotBitIter;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
@@ -19,10 +21,61 @@ impl std::ops::Not for Color {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Action {
     Put { player: Color, target: u32 },
     Move { from: u32, to: u32 },
+}
+
+impl std::fmt::Display for Action {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let display = match self {
+            Action::Put { player, target } => {
+                format!("Put({player:?}, {})", target.trailing_zeros() / 4)
+            }
+            Action::Move { from, to } => {
+                format!(
+                    "Move({} => {})",
+                    from.trailing_zeros() / 4,
+                    to.trailing_zeros() / 4
+                )
+            }
+        };
+        write!(f, "{display}")
+    }
+}
+
+impl PartialOrd for Action {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        use Action::*;
+
+        match (self, other) {
+            (
+                Put {
+                    player: p1,
+                    target: t1,
+                },
+                Put {
+                    player: p2,
+                    target: t2,
+                },
+            ) => {
+                if *p1 != *p2 {
+                    None
+                } else {
+                    Some(t1.cmp(t2))
+                }
+            }
+            (Move { from: f1, to: t1 }, Move { from: f2, to: t2 }) => {
+                if *f1 != *f2 {
+                    Some(f1.cmp(f2))
+                } else {
+                    Some(f2.cmp(f1))
+                }
+            }
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
