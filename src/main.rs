@@ -26,7 +26,7 @@ fn display_analysis_result() {
 }
 
 fn first_few_steps(num_step: usize) {
-    let (wins_vec, loses_vec, both) = analysis::analyze_backward(true);
+    let (wins_vec, loses_vec, both) = analyze_backward(true);
     let evaluator = Evaluator::from_analyzed(wins_vec, loses_vec, both);
 
     let mut board = Board::new();
@@ -56,7 +56,7 @@ fn first_few_steps(num_step: usize) {
 }
 
 fn count_best_playing() {
-    let (wins_vec, loses_vec, both) = analysis::analyze_backward(true);
+    let (wins_vec, loses_vec, both) = analyze_backward(true);
     let evaluator = Evaluator::from_analyzed(wins_vec, loses_vec, both);
 
     let mut bests_vec = vec![HashSet::from([u32::from(Board::new()).canonicalize()])];
