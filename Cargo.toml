@@ -12,3 +12,4 @@ codegen-units = 1
 [dependencies]
 strum = "0.25.0"
 strum_macros = "0.25.3"
+fxhash = "0.2.1"

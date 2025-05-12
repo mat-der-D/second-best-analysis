@@ -1,6 +1,6 @@
 use crate::bit_utils::*;
 use crate::board::*;
-use std::collections::{HashMap, HashSet};
+use fxhash::{FxHashMap, FxHashSet};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum BoardClass {
@@ -28,15 +28,15 @@ fn classify_board(board: Board) -> Option<BoardClass> {
     }
 }
 
-fn classify_ids(ids: &HashSet<u32>) -> (HashMap<BoardClass, HashSet<u32>>, HashSet<u32>) {
-    let mut class_to_ids = HashMap::new();
-    let mut residual = HashSet::new();
+fn classify_ids(ids: &FxHashSet<u32>) -> (FxHashMap<BoardClass, FxHashSet<u32>>, FxHashSet<u32>) {
+    let mut class_to_ids = FxHashMap::default();
+    let mut residual = FxHashSet::default();
     for &id in ids {
         let board = Board::from(id);
         if let Some(class) = classify_board(board) {
             class_to_ids
                 .entry(class)
-                .or_insert_with(HashSet::new)
+                .or_insert_with(FxHashSet::default)
                 .insert(id);
         } else {
             residual.insert(id);
@@ -47,16 +47,16 @@ fn classify_ids(ids: &HashSet<u32>) -> (HashMap<BoardClass, HashSet<u32>>, HashS
 
 pub fn analyze_backward(
     show_progress: bool,
-) -> (Vec<HashSet<u32>>, Vec<HashSet<u32>>, HashSet<u32>) {
-    let mut ids = HashSet::new();
+) -> (Vec<FxHashSet<u32>>, Vec<FxHashSet<u32>>, FxHashSet<u32>) {
+    let mut ids = FxHashSet::default();
     for n in 0..=16 {
         ids.extend(find_board_ids(n));
     }
     let (class_to_ids, residual) = classify_ids(&ids);
 
-    let mut wins = HashSet::new();
-    let mut loses = HashSet::new();
-    let mut both = HashSet::new();
+    let mut wins = FxHashSet::default();
+    let mut loses = FxHashSet::default();
+    let mut both = FxHashSet::default();
     for (class, ids) in class_to_ids {
         use BoardClass::*;
         match class {
@@ -73,9 +73,9 @@ pub fn analyze_backward(
         if show_progress {
             println!("Progress: {n} / 140 ({:.1}%)", (100f32 * n as f32) / 140f32);
         }
-        let mut loses_next = HashSet::new();
-        let mut wins_next = HashSet::new();
-        let mut res_next = HashSet::new();
+        let mut loses_next = FxHashSet::default();
+        let mut wins_next = FxHashSet::default();
+        let mut res_next = FxHashSet::default();
         for id0 in residual {
             let b0 = Board::from(id0);
             let num_stones = b0.num_stones();
